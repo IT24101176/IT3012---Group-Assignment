@@ -22,7 +22,12 @@ def commit(author_name, author_email, date_str, message):
         'GIT_COMMITTER_DATE': date_str
     }
     run_cmd('git add -A', env)
-    run_cmd(f'git commit -m "{message}"', env)
+    # Check if there is anything to commit, else pass --allow-empty
+    status = run_cmd('git status --porcelain', env)
+    if status.strip():
+        run_cmd(f'git commit -m "{message}"', env)
+    else:
+        run_cmd(f'git commit --allow-empty -m "{message}"', env)
     print(f'Committed: {date_str} [{author_name}] - {message}')
 
 m1_name, m1_email = 'IT24101176', 'it24101176@my.sliit.lk'
