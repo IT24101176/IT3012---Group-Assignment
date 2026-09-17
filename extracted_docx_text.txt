@@ -1,0 +1,612 @@
+Sri Lanka Institute of Information Technology
+
+IT3012 – Intelligent Agents
+
+Year 3, Semester 1- 2026
+
+Group Assignment
+
+Lab Sheet No: 06
+
+| IT  Number | Name |
+| IT24101176 | Widumini  D.G.N.S, |
+| I T 24100 427 | Wickramathilaka  H.A. |
+| IT24200314 | Ekanayake E.M.U.I.B. |
+
+Table of Contents
+
+1. Introduction3
+
+2. Group Members and Responsibilities4
+
+Question 1 – Depth-First Search (DFS)5
+
+Question 2 – Breadth-First Search (BFS)8
+
+Question 3 – Uniform Cost Search (UCS)11
+
+Question 4 – A* Search15
+
+Question 5 – Corners Problem19
+
+Question 6 – Corners Heuristic24
+
+Question 7 – Food Heuristic26
+
+8. GitHub and Version Control33
+
+1. Introduction
+
+This project focuses on the implementation and evaluation of search algorithms in a Pac-Man environment. The main objective is to apply different artificial intelligence search techniques to enable Pac-Man to find paths and solve increasingly complex navigation problems. The assignment covers both uninformed and informed search approaches, allowing the performance and behaviour of different algorithms to be examined within the same problem environment.
+
+The project implements Depth-First Search (DFS), Breadth-First Search (BFS), Uniform Cost Search (UCS), and A Search*. It then extends the search framework to more complex problems through the Corners Problem, Corners Heuristic, and Food Heuristic. Each implementation is integrated with the existing Pac-Man project and evaluated using the provided autograder tests.
+
+The project was completed collaboratively using separate Git branches for each question. Each implementation was tested independently before being integrated into the main branch. The final integrated solution was then subjected to regression testing to verify that the implemented search algorithms and heuristics continued to function correctly together.
+
+This project provides practical experience in search-based artificial intelligence, including state representation, node expansion, path-cost evaluation, heuristic design, and algorithmic optimisation within a real problem-solving environment.
+
+2. Group Members and Responsibilities
+
+| Student ID | Responsibilities |
+| IT24101176 | Q1 – DFS, Q2 – BFS, Q3 – UCS, integration |
+| IT24100427 | Q4 – A*, Q5 – Corners Problem |
+| IT24200314 | Q6 – Corners Heuristic, Q7 – Food Heuristic |
+
+Question 1 – Depth-First Search (DFS)
+
+1.1 Question
+
+Implement the depthFirstSearch(problem) function in search.py so that Pac-Man searches the deepest nodes first and returns a valid path from the start state to the goal state. The implementation should use the existing SearchProblem interface and pass the provided Q1 autograder tests.
+
+1.2 Implementation
+
+DFS was implemented using a Stack (LIFO). The algorithm:
+
+Gets the starting state using getStartState().
+
+Pushes the starting state and an empty path onto the stack.
+
+Pops the most recently added state.
+
+Checks whether the state is the goal.
+
+Uses a visited set to avoid processing the same state repeatedly.
+
+Expands successors using getSuccessors().
+
+Pushes each unvisited successor onto the stack together with the path taken to reach it.
+
+Returns the path when the goal is reached.
+
+1.3 Code
+
+1.4 Testing Result
+
+The Q1 implementation was tested using the provided autograder:
+
+Question q1: 3/3 – All tests passed.
+
+The implementation was then committed to the q1-dfs branch and integrated into the project. The group work plan requires each question to be tested with its relevant autograder before integration.
+
+1.5 Short Explanation
+
+Depth-First Search explores the search tree by expanding the deepest available node before exploring other branches. A stack was used because it follows the Last-In-First-Out (LIFO) principle required by DFS. A visited set was maintained to prevent repeated processing of states and unnecessary cycles. Each stack entry stores the current state and the sequence of actions required to reach it. When a goal state is found, the corresponding action sequence is returned as the solution path.
+
+Question 2 – Breadth-First Search (BFS)
+
+2.1 Question
+
+Implement the breadthFirstSearch(problem) function in search.py so that Pac-Man searches the shallowest nodes first and returns a valid path from the start state to the goal state. The implementation should work with the existing SearchProblem interface and pass the provided Q2 autograder tests.
+
+2.2 Implementation
+
+BFS was implemented using a Queue (FIFO). The algorithm:
+
+Gets the starting state using getStartState().
+
+Adds the starting state and an empty path to the queue.
+
+Removes the oldest entry from the queue.
+
+Checks whether the state is the goal.
+
+Uses a visited set to avoid processing states repeatedly.
+
+Expands the state's successors.
+
+Adds unvisited successors to the end of the queue.
+
+Returns the path when the goal is reached.
+
+2.3 Code
+
+def breadthFirstSearch(problem: SearchProblem):
+
+"""Search the shallowest nodes in the search tree first."""
+
+queue = util.Queue()
+
+visited = set()
+
+start_state = problem.getStartState()
+
+queue.push((start_state, []))
+
+while not queue.isEmpty():
+
+state, path = queue.pop()
+
+if state in visited:
+
+continue
+
+visited.add(state)
+
+if problem.isGoalState(state):
+
+return path
+
+for next_state, action, _ in problem.getSuccessors(state):
+
+if next_state not in visited:
+
+queue.push((next_state, path + [action]))
+
+return None
+
+2.4 Testing Result
+
+Q2 was tested using:
+
+python autograder.py -q q2
+
+Result: 3/3 – All Q2 tests passed.
+
+2.5 Short Explanation for Report
+
+Breadth-First Search explores nodes level by level, expanding the shallowest nodes before moving to deeper levels. A Queue was used because it follows the First-In-First-Out (FIFO) principle required by BFS. A visited set prevents the algorithm from repeatedly processing the same states. Each queue entry contains the current state and the sequence of actions used to reach it. When a goal state is encountered, the corresponding path is returned. For an unweighted search problem, BFS can find a shortest path in terms of the number of actions.
+
+Question 3 – Uniform Cost Search (UCS)
+
+3.1 Question
+
+Implement the uniformCostSearch(problem) function in search.py so that Pac-Man always expands the node with the lowest total path cost. The implementation should use the existing SearchProblem interface and pass the provided Q3 autograder tests.
+
+3.2 Implementation
+
+Uniform Cost Search was implemented using a Priority Queue. Unlike BFS, which considers only the number of actions, UCS considers the total cost of the path.
+
+The algorithm:
+
+Gets the starting state.
+
+Adds it to the priority queue with cost 0.
+
+Removes the state with the lowest accumulated path cost.
+
+Checks whether it is the goal.
+
+Expands its successors.
+
+Calculates the new total cost:new_cost = current_cost + step_cost
+
+If the new path provides a lower cost for a state, it is added to the priority queue.
+
+Returns the path when the goal is reached.
+
+3.3 Code
+
+def uniformCostSearch(problem: SearchProblem):
+
+"""Search the node of least total cost first."""
+
+priorityQueue = util.PriorityQueue()
+
+best_costs = {}
+
+start_state = problem.getStartState()
+
+start_cost = 0
+
+priorityQueue.push((start_state, []), start_cost)
+
+best_costs[start_state] = start_cost
+
+while not priorityQueue.isEmpty():
+
+state, path = priorityQueue.pop()
+
+current_cost = best_costs.get(state)
+
+if current_cost is None:
+
+continue
+
+if problem.isGoalState(state):
+
+return path
+
+for next_state, action, step_cost in problem.getSuccessors(state):
+
+new_cost = current_cost + step_cost
+
+previous_best = best_costs.get(next_state)
+
+if previous_best is None or new_cost < previous_best:
+
+best_costs[next_state] = new_cost
+
+priorityQueue.push(
+
+(next_state, path + [action]),
+
+new_cost
+
+)
+
+return None
+
+3.4 Testing
+
+Run:
+
+python autograder.py -q q3
+
+Result: 3/3 – All Q3 tests passed.
+
+3.5 Short Explanation for Report
+
+Uniform Cost Search expands the node with the lowest accumulated path cost. A Priority Queue was used to ensure that the lowest-cost path is selected for expansion first. The algorithm maintains the best known cost for each state and updates it whenever a cheaper path is discovered. The cost of a successor is calculated by adding its step cost to the current path cost. This allows UCS to handle different action costs and find a minimum-cost solution rather than simply the solution with the fewest actions.
+
+Question 4 – A* Search
+
+4.1 Question
+
+Implement the aStarSearch(problem, heuristic) function in search.py so that Pac-Man searches using the combined path cost and heuristic cost.
+
+A* selects nodes based on:
+
+f(n) = g(n) + h(n)
+
+where:
+
+g(n) = cost from the start state to the current state
+
+h(n) = estimated cost from the current state to the goal
+
+4.2 Implementation
+
+A Priority Queue was used to select the node with the lowest f(n) value. The implementation also keeps track of the best known path cost for each state and ignores stale queue entries when a cheaper path has already been found.
+
+def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
+
+"""Search the node that has the lowest combined cost and heuristic first."""
+
+priorityQueue = util.PriorityQueue()
+
+best_costs = {}
+
+start_state = problem.getStartState()
+
+start_g = 0
+
+start_f = start_g + heuristic(start_state, problem)
+
+priorityQueue.push((start_state, [], start_g), start_f)
+
+best_costs[start_state] = start_g
+
+while not priorityQueue.isEmpty():
+
+state, path, current_g = priorityQueue.pop()
+
+# Skip stale entries if a cheaper path was already found
+
+if current_g > best_costs.get(state, float('inf')):
+
+continue
+
+if problem.isGoalState(state):
+
+return path
+
+for next_state, action, step_cost in problem.getSuccessors(state):
+
+new_g = current_g + step_cost
+
+previous_best = best_costs.get(next_state)
+
+if previous_best is None or new_g < previous_best:
+
+best_costs[next_state] = new_g
+
+new_f = new_g + heuristic(next_state, problem)
+
+priorityQueue.push(
+
+(next_state, path + [action], new_g),
+
+new_f
+
+)
+
+return None
+
+4.3 Short Explanation for Report
+
+A* Search combines the actual path cost and an estimated cost to the goal to determine which node should be expanded next. The priority of each node is calculated using f(n) = g(n) + h(n), where g(n) represents the cost accumulated from the start state and h(n) is the heuristic estimate. A Priority Queue was used to select the node with the lowest combined cost. The implementation also stores the best known path cost for each state and ignores stale entries when a cheaper route has already been discovered. This allows A* to efficiently search for a low-cost solution while using heuristic information to guide the search.
+
+4.4 Testing
+
+Run:
+
+python autograder.py -q q4
+
+Your Q4 result was:
+
+3/3 – All tests passed.
+
+The Manhattan heuristic test also resulted in 221 nodes expanded, within the required threshold of 243.
+
+Question 5 – Corners Problem
+
+5.1 Question
+
+Implement the CornersProblem in searchAgents.py so that Pac-Man can find a path that visits all four corners of the maze.
+
+The state must contain enough information to determine both:
+
+Pac-Man's current position
+
+Which of the four corners have already been visited
+
+5.2 Implementation
+
+The Corners Problem was implemented by representing the search state as:
+
+(current_position, visited_corners)
+
+The successor function generates valid movements and updates the visited-corner information whenever Pac-Man reaches a corner.
+
+The implementation allows a search algorithm such as A* to determine a path that visits all four corners.
+
+5.3 Short Explanation for Report
+
+The Corners Problem extends the normal Pac-Man search problem by requiring Pac-Man to visit all four corners of the maze. The search state therefore needs to represent both Pac-Man's current position and the corners that have already been visited. Each successor state updates this information when Pac-Man reaches a previously unvisited corner. The goal test is satisfied when all four corners have been visited. This state representation allows the search algorithm to distinguish between positions that have different sets of remaining corners to visit.
+
+5.4 Testing
+
+Run:
+
+python autograder.py -q q5
+
+The Q5 test result was:
+
+Question q5
+
+===========
+
+...
+
+solution length: 28
+
+### Question q5: 3/3 ###
+
+Result: 3/3 – All tests passed.
+
+Question 6 – Corners Heuristic
+
+6.1 Question
+
+Implement a heuristic for the CornersProblem that estimates the remaining cost required for Pac-Man to visit all unvisited corners.
+
+The heuristic should:
+
+Consider Pac-Man's current position
+
+Identify which corners have not yet been visited
+
+Estimate the remaining distance to visit all unvisited corners
+
+Return a lower-bound estimate so that the heuristic is admissible and consistent
+
+6.2 Implementation
+
+The Corners Heuristic was implemented using the current Pac-Man position and the list of unvisited corners.
+
+The heuristic calculates the Manhattan distance between Pac-Man and the corners and considers different possible visiting orders. It keeps the minimum total distance found as the heuristic value.
+
+If all four corners have already been visited, the heuristic returns 0.
+
+6.3 Short Explanation for Report
+
+The Corners Heuristic estimates the remaining distance required for Pac-Man to visit all unvisited corners of the maze. The current position and visited-corner information are obtained from the search state, and the unvisited corners are identified. Manhattan distance is then used to calculate the distance between Pac-Man and the corners and between consecutive corners. Different possible visiting orders are considered, and the minimum total distance is returned as the heuristic value. If all corners have already been visited, the heuristic returns zero. This provides a lower-bound estimate of the remaining path cost and can guide A* search more efficiently.
+
+The implemented heuristic includes the admissibility and consistency requirement specified in the function description.
+
+6.4 Testing
+
+Run:
+
+python autograder.py -q q6
+
+The Q6 test result was:
+
+Question q6
+
+===========
+
+...
+
+...
+
+### Question q6: 3/3 ###
+
+The test also reported:
+
+solution length: 106
+
+nodes expanded: 741
+
+Result: 3/3 – All Q6 tests passed.
+
+Question 7 – Food Heuristic
+
+7.1 Question
+
+Implement a heuristic for the FoodSearchProblem that estimates the remaining cost for Pac-Man to collect all remaining food.
+
+The heuristic must be consistent to ensure that A* search produces correct results.
+
+The search state contains:
+
+Pac-Man's current position
+
+The current food grid showing which food remains
+
+7.2 Implementation
+
+The Food Heuristic was implemented by first obtaining the list of remaining food positions from the food grid.
+
+A distance map is then created using Breadth-First Search (BFS) to calculate actual maze distances between reachable positions while considering walls. These distances are reused through problem.heuristicInfo to avoid repeatedly calculating the same distances.
+
+The heuristic also calculates a Minimum Spanning Tree (MST) over the remaining food locations. The MST provides a lower-bound estimate of the distance required to connect the remaining food.
+
+Finally, the heuristic considers the distance from Pac-Man's current position to the food locations and returns:
+
+max(max_distance, min_distance + MST_cost)
+
+If there is no remaining food, the heuristic returns 0.
+
+7.3 Short Explanation for Report
+
+The Food Heuristic estimates the remaining path cost required for Pac-Man to collect all remaining food. The food positions are obtained from the food grid, and a distance map is created using BFS so that maze distances can be calculated while considering walls. These distances are stored and reused through the heuristic information dictionary. A Minimum Spanning Tree is then calculated over the remaining food positions to estimate the minimum distance needed to connect them. The heuristic combines the distance from Pac-Man to the food with the MST cost and returns the larger of the calculated lower bounds. This provides an effective estimate while maintaining consistency for A* search.
+
+The implementation also uses caching to reduce repeated distance and MST calculations during the search.
+
+7.4 Testing
+
+Run:
+
+python autograder.py -q q7
+
+The Q7 test result was:
+
+Question q7
+
+===========
+
+...
+
+...
+
+### Question q7: 5/4 ###
+
+8. GitHub and Version Control
+
+8.1 GitHub Collaboration
+
+Git and GitHub were used to manage the development of the Pac-Man Search assignment and to allow each group member to work independently on their assigned questions.
+
+The group followed a branch-based workflow, where each question was developed in a separate Git branch. This helped keep the implementations isolated and reduced the possibility of different members' changes interfering with each other.
+
+8.2 Branch Structure
+
+The following branches were used for the assignment:
+
+master
+
+├── q1-dfs
+
+├── q2-bfs
+
+├── q3-ucs
+
+├── q4-astar
+
+├── q5-corners
+
+├── q6-corners-heuristic
+
+└── q7-food-heuristic
+
+Each branch was associated with a specific question:
+
+| Branch | Question | Implementation |
+| q1-dfs | Q1 | Depth-First Search |
+| q2-bfs | Q2 | Breadth-First Search |
+| q3-ucs | Q3 | Uniform Cost Search |
+| q4-astar | Q4 | A* Search |
+| q5-corners | Q5 | Corners Problem |
+| q6-corners-heuristic | Q6 | Corners Heuristic |
+| q7-food-heuristic | Q7 | Food Heuristic |
+
+8.3 Development Workflow
+
+The group followed the following workflow for each question:
+
+Understand the requirements of the question.
+
+Inspect the existing Pac-Man source code.
+
+Implement the assigned search algorithm or heuristic.
+
+Run the relevant autograder test.
+
+Review the implementation and check for unrelated changes.
+
+Commit the completed work using Git.
+
+Push the branch to GitHub.
+
+Integrate the completed work into the master branch.
+
+Perform final regression testing after integration.
+
+8.4 Commit and Integration Process
+
+Each completed question was committed separately so that the development history clearly showed which changes belonged to each part of the assignment.
+
+After the individual questions were completed and tested, the implementations were integrated into the master branch. Final testing was then performed to verify that the completed questions continued to work together.
+
+8.5 GitHub Repository
+
+The complete project was maintained in the following GitHub repository:
+
+GitHub Repository:https://github.com/IT24101176/IT3012---Group-Assignment
+
+The repository was used to:
+
+Store the Pac-Man source code
+
+Maintain separate branches for each question
+
+Track commits and code changes
+
+Support collaboration between group members
+
+Integrate the completed implementations
+
+Maintain the final version of the project
+
+8.6 Version Control Benefits
+
+Using Git and GitHub provided several benefits during the development of the assignment:
+
+Separate development: Each question could be developed independently.
+
+Change tracking: Git commits provided a history of the changes made.
+
+Collaboration: Group members could work on different questions without directly interfering with each other's work.
+
+Integration: Completed implementations could be combined into the main branch after testing.
+
+Error recovery: Previous versions could be restored if an implementation introduced an issue.
+
+Contribution tracking: Git history provided evidence of the development work performed by each group member.
+
+8.7 Final Integration
+
+After completing Q1–Q7, the individual implementations were integrated into the master branch. The group then performed final regression testing to verify that the completed search algorithms and heuristics worked together correctly.
+
+The final repository therefore contains the completed implementation of the seven required questions together with the Git history showing the development and integration process.
