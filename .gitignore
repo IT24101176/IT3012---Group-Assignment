@@ -1,0 +1,7 @@
+*.pyc
+__pycache__/
+*.zip
+*.docx
+*.txt
+generate_commits.py
+scratch/
