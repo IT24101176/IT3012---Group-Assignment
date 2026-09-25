@@ -73,14 +73,28 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem: SearchProblem):
-    """Search the deepest nodes in the search tree first."""
+    """
+    Search the deepest nodes in the search tree first.
+
+    Your search algorithm needs to return a list of actions that reaches the
+    goal. Make sure to implement a graph search algorithm.
+
+    To get started, you might want to try some of these simple commands to
+    understand the search problem that is being passed in:
+
+    print("Start:", problem.getStartState())
+    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+    """
     stack = util.Stack()
     visited = set()
+
     start_state = problem.getStartState()
     stack.push((start_state, []))
 
     while not stack.isEmpty():
         state, path = stack.pop()
+
         if state in visited:
             continue
         visited.add(state)
@@ -91,17 +105,20 @@ def depthFirstSearch(problem: SearchProblem):
         for next_state, action, _ in problem.getSuccessors(state):
             if next_state not in visited:
                 stack.push((next_state, path + [action]))
-    return []
+
+    return None
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     queue = util.Queue()
     visited = set()
+
     start_state = problem.getStartState()
     queue.push((start_state, []))
 
     while not queue.isEmpty():
         state, path = queue.pop()
+
         if state in visited:
             continue
         visited.add(state)
@@ -112,7 +129,8 @@ def breadthFirstSearch(problem: SearchProblem):
         for next_state, action, _ in problem.getSuccessors(state):
             if next_state not in visited:
                 queue.push((next_state, path + [action]))
-    return []
+
+    return None
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
@@ -127,6 +145,7 @@ def uniformCostSearch(problem: SearchProblem):
     while not priorityQueue.isEmpty():
         state, path = priorityQueue.pop()
         current_cost = best_costs.get(state)
+
         if current_cost is None:
             continue
 
@@ -136,9 +155,11 @@ def uniformCostSearch(problem: SearchProblem):
         for next_state, action, step_cost in problem.getSuccessors(state):
             new_cost = current_cost + step_cost
             previous_best = best_costs.get(next_state)
+
             if previous_best is None or new_cost < previous_best:
                 best_costs[next_state] = new_cost
                 priorityQueue.push((next_state, path + [action]), new_cost)
+
     return None
 
 def nullHeuristic(state, problem=None):
@@ -150,8 +171,35 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    priorityQueue = util.PriorityQueue()
+    best_costs = {}
+
+    start_state = problem.getStartState()
+    start_g = 0
+    start_f = start_g + heuristic(start_state, problem)
+    priorityQueue.push((start_state, [], start_g), start_f)
+    best_costs[start_state] = start_g
+
+    while not priorityQueue.isEmpty():
+        state, path, current_g = priorityQueue.pop()
+
+        # Skip stale entries: a cheaper path to this state was already found
+        if current_g > best_costs.get(state, float('inf')):
+            continue
+
+        if problem.isGoalState(state):
+            return path
+
+        for next_state, action, step_cost in problem.getSuccessors(state):
+            new_g = current_g + step_cost
+            previous_best = best_costs.get(next_state)
+
+            if previous_best is None or new_g < previous_best:
+                best_costs[next_state] = new_g
+                new_f = new_g + heuristic(next_state, problem)
+                priorityQueue.push((next_state, path + [action], new_g), new_f)
+
+    return None
 
 
 # Abbreviations
