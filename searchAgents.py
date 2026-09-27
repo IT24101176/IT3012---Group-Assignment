@@ -488,8 +488,60 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+    if not foodList:
+        return 0
+
+    if 'dist_map' not in problem.heuristicInfo:
+        from collections import deque
+        walls = problem.walls
+        width, height = walls.width, walls.height
+        non_walls = [(x, y) for x in range(width) for y in range(height) if not walls[x][y]]
+        dist_map = {}
+        for start in non_walls:
+            dist_map[start] = {start: 0}
+            queue = deque([start])
+            while queue:
+                curr = queue.popleft()
+                d = dist_map[start][curr]
+                x, y = curr
+                for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                    nxt = (x + dx, y + dy)
+                    if not walls[nxt[0]][nxt[1]] and nxt not in dist_map[start]:
+                        dist_map[start][nxt] = d + 1
+                        queue.append(nxt)
+        problem.heuristicInfo['dist_map'] = dist_map
+        problem.heuristicInfo['mst_cache'] = {}
+
+    dist_map = problem.heuristicInfo['dist_map']
+    mst_cache = problem.heuristicInfo['mst_cache']
+
+    food_tuple = tuple(foodList)
+    if food_tuple in mst_cache:
+        mst_cost = mst_cache[food_tuple]
+    else:
+        if len(foodList) <= 1:
+            mst_cost = 0
+        else:
+            unvisited = set(foodList[1:])
+            total_mst = 0
+            min_dists = {f: dist_map[foodList[0]].get(f, float('inf')) for f in unvisited}
+            while unvisited:
+                best_f = min(unvisited, key=lambda f: min_dists[f])
+                total_mst += min_dists[best_f]
+                unvisited.remove(best_f)
+                for f in unvisited:
+                    d = dist_map[best_f].get(f, float('inf'))
+                    if d < min_dists[f]:
+                        min_dists[f] = d
+            mst_cost = total_mst
+        mst_cache[food_tuple] = mst_cost
+
+    pos_dists = [dist_map[position].get(f, float('inf')) for f in foodList]
+    max_dist = max(pos_dists)
+    min_dist = min(pos_dists)
+
+    return max(max_dist, min_dist + mst_cost)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
