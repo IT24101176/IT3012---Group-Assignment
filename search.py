@@ -139,14 +139,14 @@ def uniformCostSearch(problem: SearchProblem):
 
     start_state = problem.getStartState()
     start_cost = 0
-    priorityQueue.push((start_state, []), start_cost)
+    priorityQueue.push((start_state, [], start_cost), start_cost)
     best_costs[start_state] = start_cost
 
     while not priorityQueue.isEmpty():
-        state, path = priorityQueue.pop()
-        current_cost = best_costs.get(state)
+        state, path, current_cost = priorityQueue.pop()
 
-        if current_cost is None:
+        # Skip stale entries: a cheaper path to this state was already processed
+        if current_cost > best_costs.get(state, float('inf')):
             continue
 
         if problem.isGoalState(state):
@@ -158,7 +158,7 @@ def uniformCostSearch(problem: SearchProblem):
 
             if previous_best is None or new_cost < previous_best:
                 best_costs[next_state] = new_cost
-                priorityQueue.push((next_state, path + [action]), new_cost)
+                priorityQueue.push((next_state, path + [action], new_cost), new_cost)
 
     return None
 
